@@ -29,7 +29,7 @@ article = get_element_from_request(f'https://www.blinkist.com{cta}', 'article', 
 output = f'![{title}]({img_url})\n# {title}\n*{author}*\n\n>{description}\n\n{tomd.convert(str(article).strip())}\n\nSource: [{title} by {author}](https://www.blinkist.com{cta})'
 
 date = datetime.now().strftime('%Y%m%d')
-with open(f'./books/{date}-{title}-{author}.md', "w") as text_file:
+with open(f'./books/{date}-{title}-{author}.md', "w", encoding="utf8") as text_file:
     text_file.write(output)
 
 os.system(f'git add "./books/{date}-{title}-{author}.md"')
