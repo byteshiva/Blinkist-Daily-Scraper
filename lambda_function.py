@@ -1,5 +1,6 @@
 # coding: utf-8
 from bs4 import BeautifulSoup
+from slugify import slugify # added to remove spaces between strings 
 from datetime import datetime
 from github import Github, GithubException
 import os
@@ -27,12 +28,16 @@ def get_element_from_request(url, element, class_):
     return soup.find(element, class_ = class_)
 
 def get_meta_data():
-    container = get_element_from_request('https://www.blinkist.com/nc/daily', 'div', 'dailyV2__free-book')
+    container = get_element_from_request('https://www.blinkist.com/nc/daily', 'div', 'daily-book__container')
 
-    title = container.find('div', 'dailyV2__free-book__title').string.strip()
-    author = container.find('div', 'dailyV2__free-book__author').string.strip()
-    description = container.find('div', 'dailyV2__free-book__description').string.strip()
-    cta = container.find('div', 'dailyV2__free-book__cta').a['href']
+    title = container.find('h3', 'daily-book__headline').string.strip()
+    author = container.find('div', 'daily-book__author').string.strip()
+    #     description = container.find('div', 'dailyV2__free-book__description').string.strip()
+    description_html = container.find('div', 'book-tabs__content-inner')
+    description = tomd.convert(str(description_html).strip())
+
+    #     cta = container.find('div', 'dailyV2__free-book__cta').a['href']
+    cta = container.find('a', 'daily-book__cta').get('href')
     img_url = container.find('img')['src']
 
     return title, author, description, cta, img_url
@@ -48,7 +53,12 @@ def run():
 
     date = datetime.now().strftime('%Y%m%d')
     commitMessage = f'{title} by {author}'
-    fileName = os.path.join('blinks', f'{date[:4]}', f'{date}-{title}-{author}.md')
+    
+    title_slugified = slugify(title)
+    author_slugified = slugify(author)
+
+    #     update with title_slugified, author_slugified
+    fileName = os.path.join('blinks', f'{date[:4]}', f'{date}-{title_slugified}-{author_slugified}.md')
 
     print('Building output...', end='')
     # Convert to markdown, add source
